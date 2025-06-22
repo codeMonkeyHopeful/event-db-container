@@ -24,18 +24,18 @@ cur.execute("""
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
-        bio TEXT,
+        event_id TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 """)
 
 # Generate 50 fake users
 faker = Faker()
-users = [(faker.name(), faker.unique.email(), faker.sentence()) for _ in range(50)]
+users = [(faker.name(), faker.unique.email(), faker.unique.random_int(min=1, max=100)) for _ in range(50)]
 
 # Insert users
 args_str = ",".join(cur.mogrify("(%s, %s, %s)", u).decode("utf-8") for u in users)
-cur.execute(f"INSERT INTO users (name, email, bio) VALUES {args_str} ON CONFLICT (email) DO NOTHING;")
+cur.execute(f"INSERT INTO users (name, email, event_id) VALUES {args_str} ON CONFLICT (email) DO NOTHING;")
 
 conn.commit()
 cur.close()
