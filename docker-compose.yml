@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: my_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d  # Optional for pgsql scripts
+
+  seeder:
+    image: python:3.11
+    container_name: seeder
+    depends_on:
+      - postgres
+    volumes:
+      - ./init:/app
+    working_dir: /app
+    command: >
+      bash -c "pip install psycopg2-binary Faker && python seed.py"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASS: ${POSTGRES_PASSWORD}
+
+volumes:
+  pgdata:
